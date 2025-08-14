@@ -1,6 +1,5 @@
-import requests
 from fastapi import APIRouter, Request, Header, HTTPException
-from typing import Dict, Any
+from typing import Dict, Any, List
 from github.GithubException import GithubException
 from webhook_security import WebhookSecurity
 from auth import GitHubAuth
@@ -68,6 +67,15 @@ class PullRequestHandler:
                     detail="Missing required data: installation_id, owner, repo, or pr_number"
                 )
 
+            # Get and print changed Python files
+            python_files = await self.get_changed_python_files(installation_id, owner, repo, pr_number)
+            if python_files:
+                print(f"Changed Python files in PR #{pr_number}:")
+                for file_path in python_files:
+                    print(f"  - {file_path}")
+            else:
+                print(f"No Python files changed in PR #{pr_number}")
+
             # Post comment to PR
             comment_body = "👋 Hello from Docs-Sync! Your PR has been received."
             comment_url = await self.post_pr_comment(installation_id, owner, repo, pr_number, comment_body)
@@ -77,13 +85,51 @@ class PullRequestHandler:
                 "installation_id": installation_id,
                 "repository": f"{owner}/{repo}",
                 "pr_number": pr_number,
-                "comment_url": comment_url
+                "comment_url": comment_url,
+                "python_files_changed": len(python_files)
             }
 
         return {
             "message": f"Pull request {action} event received but not processed",
             "action": action
         }
+
+    async def get_changed_python_files(
+        self,
+        installation_id: int,
+        owner: str,
+        repo: str,
+        pr_number: int
+    ) -> List[str]:
+        """Get all changed Python files in a pull request."""
+        try:
+            # Get authenticated GitHub instance
+            github = self.auth.get_github_instance(installation_id)
+
+            # Get the repository
+            repository = github.get_repo(f"{owner}/{repo}")
+
+            # Get the pull request
+            pull_request = repository.get_pull(pr_number)
+
+            # Get all changed files
+            changed_files = pull_request.get_files()
+
+            # Filter for Python files
+            python_files = []
+            for file in changed_files:
+                if file.filename.endswith('.py'):
+                    python_files.append(file.filename)
+
+            return python_files
+
+        except GithubException as e:
+            error_message = e.data.get('message', str(e)) if hasattr(e, 'data') and e.data else str(e)
+            print(f"GitHub API error getting changed files: {error_message}")
+            return []
+        except Exception as e:
+            print(f"Error getting changed files: {str(e)}")
+            return []
 
     async def post_pr_comment(
         self,
@@ -120,4 +166,3 @@ class PullRequestHandler:
                 status_code=500,
                 detail=f"Error posting comment to PR: {str(e)}"
             )
-
