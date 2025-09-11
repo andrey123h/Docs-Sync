@@ -17,10 +17,8 @@ class PullRequestHandler:
         x_hub_signature_256: str
     ) -> Dict[str, Any]:
         """Process pull request webhook event."""
-        # Get raw body for signature verification
+        # GitHub signature verification
         body = await request.body()
-
-        # Verify webhook signature
         WebhookSecurity.verify_signature(body, x_hub_signature_256)
 
         # Only handle pull_request events
@@ -88,7 +86,7 @@ class PullRequestHandler:
             # Get the repository
             repository = github.get_repo(f"{owner}/{repo}")
 
-            # Get the pull request
+            # Get the pull request. Retrieve a PullRequest object to access PR-specific data such as files
             pull_request = repository.get_pull(pr_number)
 
             # Get all changed files
@@ -126,7 +124,7 @@ class PullRequestHandler:
             # Get the repository
             repository = github.get_repo(f"{owner}/{repo}")
 
-            # Get the pull request (issue in GitHub API terms)
+            # Get the pull request. Retrieve an Issue object to manage comments on the discussion thread
             pull_request = repository.get_issue(pr_number)
 
             # Create the comment
