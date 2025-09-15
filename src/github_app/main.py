@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from pull_request_controller import PullRequestController
-from config import Config
+from controllers.pull_request_controller import PullRequestController
+from configure.config import Config
 
 
 Config.validate() # Ensure configuration is valid

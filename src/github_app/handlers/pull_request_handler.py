@@ -1,8 +1,8 @@
 from fastapi import Request, HTTPException
 from typing import Dict, Any, List
 from github.GithubException import GithubException
-from .webhook_security import WebhookSecurity
-from .auth import GitHubAuth
+from security.webhook_security import WebhookSecurity
+from security.auth import GitHubAuth
 
 class PullRequestHandler:
     """Handler for pull request events business logic"""

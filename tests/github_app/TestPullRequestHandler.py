@@ -1,6 +1,6 @@
 import pytest
 from github.GithubException import GithubException
-from src.github_app.pull_request_handler import PullRequestHandler
+from src.github_app.handlers.pull_request_handler import PullRequestHandler
 
 
 class TestPullRequestHandler:
@@ -23,7 +23,7 @@ class TestPullRequestHandler:
         mock_github, mock_repo, mock_pr = mock_github_instance
         mock_auth_instance = mocker.Mock()
         mock_auth_instance.get_github_instance.return_value = mock_github
-        mock_github_auth_class = mocker.patch('src.github_app.pull_request_handler.GitHubAuth')
+        mock_github_auth_class = mocker.patch('src.github_app.handlers.pull_request_handler.GitHubAuth')
         mock_github_auth_class.return_value = mock_auth_instance
 
         handler = PullRequestHandler()
@@ -54,14 +54,14 @@ class TestPullRequestHandler:
         mock_github, mock_repo, mock_pr = mock_github_instance
         mock_auth_instance = mocker.Mock()
         mock_auth_instance.get_github_instance.return_value = mock_github
-        mock_github_auth_class = mocker.patch('src.github_app.pull_request_handler.GitHubAuth')
+        mock_github_auth_class = mocker.patch('src.github_app.handlers.pull_request_handler.GitHubAuth')
         mock_github_auth_class.return_value = mock_auth_instance
 
         handler = PullRequestHandler()
 
         mock_files = [
             mocker.Mock(filename='README.md'),
-            mocker.Mock(filename='config.json'),
+            mocker.Mock(filename='configure.json'),
             mocker.Mock(filename='Dockerfile')
         ]
         mock_pr.get_files.return_value = mock_files
@@ -79,7 +79,7 @@ class TestPullRequestHandler:
         mock_github, mock_repo, mock_pr = mock_github_instance
         mock_auth_instance = mocker.Mock()
         mock_auth_instance.get_github_instance.return_value = mock_github
-        mock_github_auth_class = mocker.patch('src.github_app.pull_request_handler.GitHubAuth')
+        mock_github_auth_class = mocker.patch('src.github_app.handlers.pull_request_handler.GitHubAuth')
         mock_github_auth_class.return_value = mock_auth_instance
 
         handler = PullRequestHandler()
@@ -100,7 +100,7 @@ class TestPullRequestHandler:
             status=404,
             data={'message': 'Not Found'}
         )
-        mock_github_auth_class = mocker.patch('src.github_app.pull_request_handler.GitHubAuth')
+        mock_github_auth_class = mocker.patch('src.github_app.handlers.pull_request_handler.GitHubAuth')
         mock_github_auth_class.return_value = mock_auth_instance
 
         handler = PullRequestHandler()
@@ -120,7 +120,7 @@ class TestPullRequestHandler:
         mock_auth_instance = mocker.Mock()
         exception = GithubException(status=500, data=None)
         mock_auth_instance.get_github_instance.side_effect = exception
-        mock_github_auth_class = mocker.patch('src.github_app.pull_request_handler.GitHubAuth')
+        mock_github_auth_class = mocker.patch('src.github_app.handlers.pull_request_handler.GitHubAuth')
         mock_github_auth_class.return_value = mock_auth_instance
 
         handler = PullRequestHandler()
@@ -139,7 +139,7 @@ class TestPullRequestHandler:
         # Arrange
         mock_auth_instance = mocker.Mock()
         mock_auth_instance.get_github_instance.side_effect = Exception("Connection error")
-        mock_github_auth_class = mocker.patch('src.github_app.pull_request_handler.GitHubAuth')
+        mock_github_auth_class = mocker.patch('src.github_app.handlers.pull_request_handler.GitHubAuth')
         mock_github_auth_class.return_value = mock_auth_instance
 
         handler = PullRequestHandler()
@@ -159,7 +159,7 @@ class TestPullRequestHandler:
         mock_github, mock_repo, mock_pr = mock_github_instance
         mock_auth_instance = mocker.Mock()
         mock_auth_instance.get_github_instance.return_value = mock_github
-        mock_github_auth_class = mocker.patch('src.github_app.pull_request_handler.GitHubAuth')
+        mock_github_auth_class = mocker.patch('src.github_app.handlers.pull_request_handler.GitHubAuth')
         mock_github_auth_class.return_value = mock_auth_instance
 
         handler = PullRequestHandler()
@@ -183,7 +183,7 @@ class TestPullRequestHandler:
         mock_github, mock_repo, mock_pr = mock_github_instance
         mock_auth_instance = mocker.Mock()
         mock_auth_instance.get_github_instance.return_value = mock_github
-        mock_github_auth_class = mocker.patch('src.github_app.pull_request_handler.GitHubAuth')
+        mock_github_auth_class = mocker.patch('src.github_app.handlers.pull_request_handler.GitHubAuth')
         mock_github_auth_class.return_value = mock_auth_instance
 
         handler = PullRequestHandler()

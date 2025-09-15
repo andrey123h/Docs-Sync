@@ -1,30 +1,30 @@
 import hmac
 import hashlib
 from fastapi import HTTPException
-from .config import config
+from configure.config import Config
+
 
 class WebhookSecurity:
     """Handle webhook security and signature verification."""
 
     @staticmethod
     def verify_signature(payload: bytes, signature: str) -> None:
-        """Verifies that incoming webhook requests are authentic and originate from GitHub. It implements HMAC-SHA256
-        signature verification using a shared secret configured in the application settings: GITHUB_WEBHOOK_SECRET."""
+        """Verify incoming webhook requests with HMAC-SHA256 signature check."""
 
         if not signature:
             raise HTTPException(status_code=401, detail="Missing signature")
 
-        # Remove 'sha256=' prefix if present
-        if signature.startswith('sha256='):
+        if signature.startswith("sha256="):
             signature = signature[7:]
 
-        # Create HMAC signature
+
+        secret = Config.GITHUB_WEBHOOK_SECRET
+
         expected_signature = hmac.new(
-            config.GITHUB_WEBHOOK_SECRET.encode('utf-8'),
+            secret.encode("utf-8"),
             payload,
-            hashlib.sha256
+            hashlib.sha256,
         ).hexdigest()
 
-        # Compare signatures
         if not hmac.compare_digest(expected_signature, signature):
             raise HTTPException(status_code=401, detail="Invalid signature")

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Header
-from pull_request_handler import PullRequestHandler
+from handlers.pull_request_handler import PullRequestHandler
 
 class PullRequestController:
     """Controller for pull request webhook endpoint"""
