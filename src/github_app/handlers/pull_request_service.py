@@ -30,10 +30,20 @@ class PullRequestService:
             installation_id, owner, repo, pr_number
         )
 
+        # for debug purposes, print the changed Python files and their content
         if python_files:
             print(f"Changed Python files in PR #{pr_number}:")
-            for file in python_files:
-                print(f"  - {file}")
+            for file_path in python_files:
+                print(f"  - {file_path}")
+
+                # Fetch and print file content
+                file_content = await self.github.get_file_content(
+                    installation_id, owner, repo, pr_number, file_path
+                )
+                if file_content:
+                    print(f"--- Content of {file_path} ---")
+                    print(file_content[:300])  # print first 300 chars for debug
+                    print("-----------------------------")
         else:
             print(f"No Python files changed in PR #{pr_number}")
 
