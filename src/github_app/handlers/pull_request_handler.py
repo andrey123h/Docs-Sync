@@ -1,14 +1,14 @@
 from fastapi import Request, HTTPException
-from typing import Dict, Any, List
-from github.GithubException import GithubException
+from typing import Dict, Any
 from security.webhook_security import WebhookSecurity
-from security.auth import GitHubAuth
+from pull_request_service import PullRequestService
 
-class PullRequestHandler:
-    """Handler for pull request events business logic"""
 
-    def __init__(self):
-        self.auth = GitHubAuth()
+class PullRequestEventHandler:
+    """Entrypoint for handling pull request webhook events"""
+
+    def __init__(self, service: PullRequestService):
+        self.service = service
 
     async def handle_pull_request_event(
         self,
@@ -17,7 +17,7 @@ class PullRequestHandler:
         x_hub_signature_256: str
     ) -> Dict[str, Any]:
         """Process pull request webhook event."""
-        # GitHub signature verification
+        # Verify GitHub signature
         body = await request.body()
         WebhookSecurity.verify_signature(body, x_hub_signature_256)
 
@@ -25,121 +25,15 @@ class PullRequestHandler:
         if x_github_event != "pull_request":
             return {"message": f"Event {x_github_event} not handled by this endpoint"}
 
-        # Parse the JSON body
+        # Parse request body
         try:
             event_data = await request.json()
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
-        # Extract event details
+        # Handle pull request opened action
         action = event_data.get("action")
-
-        # Only process opened pull requests
         if action == "opened":
-            installation_id = event_data.get("installation", {}).get("id")
-            repository = event_data.get("repository", {})
-            pull_request = event_data.get("pull_request", {})
+            return await self.service.process_opened(event_data)
 
-            owner = repository.get("owner", {}).get("login")
-            repo = repository.get("name")
-            pr_number = pull_request.get("number")
-
-            # Validate required data
-            if not all([installation_id, owner, repo, pr_number]):
-                raise HTTPException(
-                    status_code=400,
-                    detail="Missing required data: installation_id, owner, repo, or pr_number"
-                )
-
-            # Get and print changed Python files
-            python_files = await self.get_changed_python_files(installation_id, owner, repo, pr_number)
-            if python_files:
-                print(f"Changed Python files in PR #{pr_number}:")
-                for file_path in python_files:
-                    print(f"  - {file_path}")
-            else:
-                print(f"No Python files changed in PR #{pr_number}")
-
-            # Post comment to PR
-            comment_body = "Hello from Docs-Sync"
-            comment_url = await self.post_pr_comment(installation_id, owner, repo, pr_number, comment_body)
-
-            return {"message": "Comment posted successfully"}
-
-        return {
-            "message": f"Pull request {action} event received but not processed",
-            "action": action
-        }
-
-    async def get_changed_python_files(
-        self,
-        installation_id: int,
-        owner: str,
-        repo: str,
-        pr_number: int
-    ) -> List[str]:
-        """Get all changed Python files in a pull request."""
-        try:
-            # Get authenticated GitHub instance
-            github = self.auth.get_github_instance(installation_id)
-
-            # Get the repository
-            repository = github.get_repo(f"{owner}/{repo}")
-
-            # Get the pull request. Retrieve a PullRequest object to access PR-specific data such as files
-            pull_request = repository.get_pull(pr_number)
-
-            # Get all changed files
-            changed_files = pull_request.get_files()
-
-            # Filter for Python files
-            python_files = []
-            for file in changed_files:
-                if file.filename.endswith('.py'):
-                    python_files.append(file.filename)
-
-            return python_files
-
-        except GithubException as e:
-            error_message = e.data.get('message', str(e)) if hasattr(e, 'data') and e.data else str(e)
-            print(f"GitHub API error getting changed files: {error_message}")
-            return []
-        except Exception as e:
-            print(f"Error getting changed files: {str(e)}")
-            return []
-
-    async def post_pr_comment(
-        self,
-        installation_id: int,
-        owner: str,
-        repo: str,
-        pr_number: int,
-        body: str
-    ) -> str:
-        """Post a comment to a pull request"""
-        try:
-            # Get authenticated GitHub instance
-            github = self.auth.get_github_instance(installation_id)
-
-            # Get the repository
-            repository = github.get_repo(f"{owner}/{repo}")
-
-            # Get the pull request. Retrieve an Issue object to manage comments on the discussion thread
-            pull_request = repository.get_issue(pr_number)
-
-            # Create the comment
-            comment = pull_request.create_comment(body)
-
-            return comment.html_url
-
-        except GithubException as e:
-            error_message = e.data.get('message', str(e)) if hasattr(e, 'data') and e.data else str(e)
-            raise HTTPException(
-                status_code=e.status if hasattr(e, 'status') else 500,
-                detail=f"GitHub API error: {error_message}"
-            )
-        except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error posting comment to PR: {str(e)}"
-            )
+        return {"message": f"Pull request {action} event received but not processed"}
