@@ -76,24 +76,35 @@ class GitHubClient:
             )
 
     async def get_file_content(
-        self, installation_id: int, owner: str, repo: str, pr_number: int, file_path: str
+        self, installation_id: int, owner: str, repo: str, pr_number: int, file_path: str, ref_type: str = "head"
     ) -> str:
         """
-                Fetch raw content of a file from a pull request head commit.
+        Fetch raw content of a file from a pull request base or head commit.
 
-                Retrieves the content of a specific file at the state it exists in
-                the  latest commit in the PR branch.
+        Retrieves the content of a specific file at the state it exists in
+        either the base commit (target branch) or head commit (PR branch).
 
-                Returns:
-                    str: Decoded file content as UTF-8 string. Returns empty string if
-                         file not found or on error.
-                """
+        Args:
+            installation_id (int): GitHub App installation ID for authentication
+            owner (str): Repository owner (user or organization name)
+            repo (str): Repository name
+            pr_number (int): Pull request number
+            file_path (str): Path of the target file
+            ref_type (str): "base" or "head" (default: "head")
+
+        Returns:
+            str: Decoded file content as UTF-8 string. Returns empty string if
+                 file not found or on error.
+        """
         try:
             github = self.auth.get_github_instance(installation_id)
             repository = github.get_repo(f"{owner}/{repo}")
             pull_request = repository.get_pull(pr_number)
 
-            contents = repository.get_contents(file_path, ref=pull_request.head.sha)
+            # Resolve the correct commit SHA based on ref_type. Default to head.
+            ref_sha = pull_request.head.sha if ref_type == "head" else pull_request.base.sha
+
+            contents = repository.get_contents(file_path, ref=ref_sha)
             return contents.decoded_content.decode("utf-8")
         except GithubException as e:
             error_message = e.data.get("message", str(e)) if getattr(e, "data", None) else str(e)

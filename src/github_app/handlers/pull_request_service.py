@@ -10,6 +10,58 @@ class PullRequestService:
     def __init__(self, github_client: GitHubClient):
         self.github = github_client
 
+    def _log_file_comparison(
+        self,
+        file_path: str,
+        head_content: str,
+        base_content: str,
+        pr_number: int,
+        is_first_file: bool = False
+    ) -> None:
+        """
+        Log file content comparison for debugging purposes.
+
+        Args:
+            file_path (str): Path of the file being compared
+            head_content (str): Content from HEAD (PR branch)
+            base_content (str): Content from BASE (target branch)
+            pr_number (int): Pull request number
+            is_first_file (bool): Whether this is the first file in the list
+        """
+        if is_first_file:
+            print(f"\n{'='*60}")
+            print(f"Changed Python files in PR #{pr_number}:")
+            print(f"{'='*60}")
+
+        print(f"\n📄 File: {file_path}")
+        print(f"{'-'*60}")
+
+        # Print validation results
+        if head_content:
+            print(f"✓ HEAD content (PR branch) - {len(head_content)} characters:")
+            print(f"--- First 300 characters ---")
+            print(head_content[:300])
+            print(f"--- End of HEAD preview ---\n")
+        else:
+            print(f"⚠️  HEAD content not found (possibly a new file)")
+
+        if base_content:
+            print(f"✓ BASE content (target branch) - {len(base_content)} characters:")
+            print(f"--- First 300 characters ---")
+            print(base_content[:300])
+            print(f"--- End of BASE preview ---\n")
+        else:
+            print(f"⚠️  BASE content not found (possibly a new file)")
+
+        # Compare if both exist
+        if head_content and base_content:
+            if head_content == base_content:
+                print(f"ℹ️  Note: HEAD and BASE are identical")
+            else:
+                print(f"✓ Files differ - HEAD has {len(head_content)} chars, BASE has {len(base_content)} chars")
+
+        print(f"{'-'*60}")
+
     async def process_opened(self, event_data: Dict[str, Any]) -> Dict[str, Any]:
         installation_id = event_data.get("installation", {}).get("id")
         repository = event_data.get("repository", {})
@@ -31,20 +83,21 @@ class PullRequestService:
             installation_id, owner, repo, pr_number
         )
 
-        # for debug purposes, print the changed Python files and their content
+        # Process changed Python files
         if python_files:
-            print(f"Changed Python files in PR #{pr_number}:")
-            for file_path in python_files:
-                print(f"  - {file_path}")
-
-                # Fetch and print file content
-                file_content = await self.github.get_file_content(
-                    installation_id, owner, repo, pr_number, file_path
+            for idx, file_path in enumerate(python_files):
+                # Fetch HEAD version (PR branch)
+                head_content = await self.github.get_file_content(
+                    installation_id, owner, repo, pr_number, file_path, ref_type="head"
                 )
-                if file_content:
-                    print(f"--- Content of {file_path} ---")
-                    print(file_content[:300])  # print first 300 chars for debug
-                    print("-----------------------------")
+
+                # Fetch BASE version (target branch)
+                base_content = await self.github.get_file_content(
+                    installation_id, owner, repo, pr_number, file_path, ref_type="base"
+                )
+
+                # Log comparison for debugging
+                self._log_file_comparison(file_path, head_content, base_content, pr_number, is_first_file=(idx == 0))
         else:
             print(f"No Python files changed in PR #{pr_number}")
 

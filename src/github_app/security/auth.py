@@ -1,6 +1,6 @@
 from pathlib import Path
 from fastapi import HTTPException
-from github import GithubIntegration, Github
+from github import GithubIntegration, Github # from PyGithub library for GitHub API interactions
 from github.GithubException import GithubException
 from github_app.configure.config import config
 
