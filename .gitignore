@@ -150,3 +150,7 @@ keys/
 *.key
 config.local.py
 .secrets
+
+# Private keys and credentials
+secrets/
+

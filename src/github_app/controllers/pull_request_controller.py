@@ -1,12 +1,22 @@
 from fastapi import APIRouter, Request, Header
-from handlers.pull_request_handler import PullRequestHandler
+from github_app.handlers.pull_request_handler import PullRequestEventHandler
+from github_app.handlers.pull_request_service import PullRequestService
+from github_app.handlers.git_hub_client import GitHubClient
+from github_app.security.auth import GitHubAuth
+
 
 class PullRequestController:
     """Controller for pull request webhook endpoint"""
 
     def __init__(self):
         self.router = APIRouter(prefix="/github/pr", tags=["pull-requests"])
-        self.handler = PullRequestHandler()
+
+        # Build dependency chain
+        auth = GitHubAuth()
+        github_client = GitHubClient(auth)
+        service = PullRequestService(github_client)
+        self.handler = PullRequestEventHandler(service)
+
         self._setup_routes()
 
     def _setup_routes(self):

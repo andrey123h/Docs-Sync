@@ -1,7 +1,7 @@
 from fastapi import Request, HTTPException
 from typing import Dict, Any
-from security.webhook_security import WebhookSecurity
-from pull_request_service import PullRequestService
+from github_app.security.webhook_security import WebhookSecurity
+from github_app.handlers.pull_request_service import PullRequestService
 
 
 class PullRequestEventHandler:

@@ -1,7 +1,7 @@
 import hmac
 import hashlib
 from fastapi import HTTPException
-from configure.config import Config
+from github_app.configure.config import Config
 
 
 class WebhookSecurity:

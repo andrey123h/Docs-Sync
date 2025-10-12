@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from typing import Dict, Any
-from git_hub_client import GitHubClient
+from github_app.handlers.git_hub_client import GitHubClient
+
 
 
 class PullRequestService:

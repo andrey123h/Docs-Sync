@@ -2,7 +2,8 @@ from pathlib import Path
 from fastapi import HTTPException
 from github import GithubIntegration, Github
 from github.GithubException import GithubException
-from configure.config import config
+from github_app.configure.config import config
+
 
 class GitHubAuth:
     """Handle GitHub App authentication"""

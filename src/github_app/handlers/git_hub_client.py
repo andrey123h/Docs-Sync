@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import HTTPException
 from github.GithubException import GithubException
-from security.auth import GitHubAuth
+from github_app.security.auth import GitHubAuth
 
 
 class GitHubClient:
