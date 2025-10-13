@@ -5,7 +5,7 @@ from github_app.configure.config import Config
 
 
 class WebhookSecurity:
-    """Handle webhook security and signature verification."""
+    """Handle webhook security - signature verification."""
 
     @staticmethod
     def verify_signature(payload: bytes, signature: str) -> None:

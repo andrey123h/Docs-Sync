@@ -20,12 +20,16 @@ class PullRequestController:
         self._setup_routes()
 
     def _setup_routes(self):
-        """Setup router endpoint."""
+        """Setup router endpoint.
+        Registers the POST endpoint at '/github/pr/events' that receives and processes
+        GitHub webhook events. Extracts required headers for event type
+        identification and signature verification."""
+
         @self.router.post("/events")
         async def handle_pull_request_webhook(
             request: Request,
-            x_github_event: str = Header(None),
-            x_hub_signature_256: str = Header(None)
+            x_github_event: str = Header(None), # GitHub event type
+            x_hub_signature_256: str = Header(None) # HMAC SHA-256 signature for verification
         ):
             """Handle pull request webhook events."""
             return await self.handler.handle_pull_request_event(request, x_github_event, x_hub_signature_256)

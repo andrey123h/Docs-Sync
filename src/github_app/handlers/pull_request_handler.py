@@ -5,10 +5,13 @@ from github_app.handlers.pull_request_service import PullRequestService
 
 
 class PullRequestEventHandler:
-    """Entrypoint for handling pull request webhook events"""
+    """Entrypoint for handling pull request webhook events
+
+    Processes incoming webhook events, verifies their authenticity,
+    and delegates the actual business logic to the PullRequestService."""
 
     def __init__(self, service: PullRequestService):
-        self.service = service
+        self.service = service # service layer
 
     async def handle_pull_request_event(
         self,
@@ -17,6 +20,7 @@ class PullRequestEventHandler:
         x_hub_signature_256: str
     ) -> Dict[str, Any]:
         """Process pull request webhook event."""
+
         # Verify GitHub signature
         body = await request.body()
         WebhookSecurity.verify_signature(body, x_hub_signature_256)
@@ -31,9 +35,10 @@ class PullRequestEventHandler:
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
-        # Handle pull request opened action
+        # Only handle 'opened' action
         action = event_data.get("action")
         if action == "opened":
+            # delegate to service layer
             return await self.service.process_opened(event_data)
 
         return {"message": f"Pull request {action} event received but not processed"}
