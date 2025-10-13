@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Header
 from github_app.handlers.pull_request_handler import PullRequestEventHandler
-from services.pull_request_service import PullRequestService
+from github_app.services.pull_request_service import PullRequestService
 from github_app.handlers.git_hub_client import GitHubClient
 from github_app.security.auth import GitHubAuth
 
