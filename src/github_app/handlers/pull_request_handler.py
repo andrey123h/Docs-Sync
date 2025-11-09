@@ -16,7 +16,6 @@ class PullRequestEventHandler:
         x_github_event: str,
         x_hub_signature_256: str
     ) -> Dict[str, Any]:
-        """Process pull request webhook event."""
 
         body = await request.body()
         WebhookSecurity.verify_signature(body, x_hub_signature_256)
