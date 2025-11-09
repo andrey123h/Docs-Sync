@@ -9,7 +9,6 @@ class GitHubAuth:
     """Handle GitHub App authentication"""
 
     def __init__(self):
-        """Initialize GitHub Integration."""
         self._integration = None
         self._load_integration()
 
